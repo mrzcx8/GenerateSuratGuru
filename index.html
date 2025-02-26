@@ -22,6 +22,23 @@
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
+    .guide {
+      background-color: #e9f5ff;
+      padding: 15px;
+      border-left: 5px solid #007bff;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+    .guide h2 {
+      margin-top: 0;
+      color: #007bff;
+    }
+    .guide ul {
+      padding-left: 20px;
+    }
+    .guide ul li {
+      margin-bottom: 10px;
+    }
     label {
       display: block;
       margin-top: 10px;
@@ -86,6 +103,19 @@
 <body>
   <div class="container">
     <h1>Penjana Surat Sekolah</h1>
+
+    <!-- Panduan Penggunaan -->
+    <div class="guide">
+      <h2>Panduan Penggunaan</h2>
+      <ul>
+        <li>Pilih jenis surat dari dropdown.</li>
+        <li>Isi nama pengirim, penerima, dan tarikh.</li>
+        <li>Klik <strong>Pratonton Surat</strong> untuk melihat kandungan surat.</li>
+        <li><strong>Anda boleh mengedit teks dalam kotak pratonton</strong> sebelum menjana PDF.</li>
+        <li>Klik <strong>Jana PDF</strong> untuk memuat turun surat dalam format PDF.</li>
+      </ul>
+    </div>
+
     <form id="letterForm">
       <label for="letterType">Jenis Surat:</label>
       <select id="letterType" name="letterType" required>
@@ -122,7 +152,7 @@
       <p><strong>Nama Pengirim:</strong> <span id="previewNama"></span></p>
       <p><strong>Nama Penerima:</strong> <span id="previewPenerima"></span></p>
       <p><strong>Tarikh:</strong> <span id="previewTarikh"></span></p>
-      <p><strong>Isi Kandungan:</strong></p>
+      <p><strong>Isi Kandungan:</strong> <em>(Anda boleh mengedit teks di bawah sebelum menjana PDF)</em></p>
       <textarea id="previewContentTextarea"></textarea>
     </div>
 
