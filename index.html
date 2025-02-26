@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Penjana Surat Sekolah</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f9;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #555;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #777;
+    }
+    .preview {
+      border: 1px solid #ccc;
+      padding: 20px;
+      margin-top: 20px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+    }
+    .preview h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    .preview p {
+      margin: 10px 0;
+      line-height: 1.6;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Penjana Surat Sekolah</h1>
+    <form id="letterForm">
+      <label for="letterType">Jenis Surat:</label>
+      <select id="letterType" name="letterType" required>
+        <option value="">Pilih Jenis Surat</option>
+        <option value="cuti_rehat">Surat Permohonan Cuti Rehat</option>
+        <option value="cuti_tanpa_rekod">Surat Permohonan Cuti Tanpa Rekod</option>
+        <option value="pertukaran_sekolah">Surat Permohonan Pertukaran Sekolah</option>
+        <option value="aduan_disiplin">Surat Aduan Disiplin Pelajar</option>
+        <option value="peralatan_mengajar">Surat Permohonan Peralatan Mengajar</option>
+        <option value="perakuan_guru">Surat Perakuan Guru Kelas</option>
+        <option value="jemputan_penceramah">Surat Jemputan Penceramah</option>
+        <option value="program_sekolah">Surat Permohonan Program Sekolah</option>
+        <option value="sokongan_pelajar">Surat Sokongan untuk Pelajar Sekolah</option>
+        <option value="laporan_prestasi">Surat Laporan Prestasi Pelajar</option>
+      </select>
+
+      <label for="nama">Nama Pengirim:</label>
+      <input type="text" id="nama" name="nama" required>
+
+      <label for="penerima">Nama Penerima:</label>
+      <input type="text" id="penerima" name="penerima" required>
+
+      <label for="tarikh">Tarikh:</label>
+      <input type="date" id="tarikh" name="tarikh" required>
+
+      <button type="button" onclick="previewLetter()">Pratonton Surat</button>
+      <button type="button" onclick="generatePDF()">Jana PDF</button>
+    </form>
+
+    <!-- Preview Section -->
+    <div id="previewSection" class="preview" style="display: none;">
+      <h2>Pratonton Surat</h2>
+      <p><strong>Jenis Surat:</strong> <span id="previewLetterType"></span></p>
+      <p><strong>Nama Pengirim:</strong> <span id="previewNama"></span></p>
+      <p><strong>Nama Penerima:</strong> <span id="previewPenerima"></span></p>
+      <p><strong>Tarikh:</strong> <span id="previewTarikh"></span></p>
+      <p><strong>Isi Kandungan:</strong></p>
+      <div id="previewContent"></div>
+    </div>
+
+    <div class="footer">
+      Mr. Syah @ 2025 Hak Cipta Terpelihara
+    </div>
+  </div>
+
+  <script>
+    const { jsPDF } = window.jspdf;
+
+    // Function to preview the letter
+    function previewLetter() {
+      const letterType = document.getElementById('letterType').value;
+      const nama = document.getElementById('nama').value;
+      const penerima = document.getElementById('penerima').value;
+      const tarikh = document.getElementById('tarikh').value;
+
+      if (!letterType || !nama || !penerima || !tarikh) {
+        alert("Sila isi semua maklumat yang diperlukan.");
+        return;
+      }
+
+      // Update preview section
+      document.getElementById('previewLetterType').textContent = getLetterTitle(letterType);
+      document.getElementById('previewNama').textContent = nama;
+      document.getElementById('previewPenerima').textContent = penerima;
+      document.getElementById('previewTarikh').textContent = tarikh;
+      document.getElementById('previewContent').innerHTML = getLetterContent(letterType, nama, penerima)
+        .split('\n\n')
+        .map(paragraph => `<p>${paragraph}</p>`)
+        .join('');
+
+      // Show preview section
+      document.getElementById('previewSection').style.display = 'block';
+    }
+
+    // Function to generate PDF
+    function generatePDF() {
+      const letterType = document.getElementById('letterType').value;
+      const nama = document.getElementById('nama').value;
+      const penerima = document.getElementById('penerima').value;
+      const tarikh = document.getElementById('tarikh').value;
+
+      if (!letterType || !nama || !penerima || !tarikh) {
+        alert("Sila isi semua maklumat yang diperlukan.");
+        return;
+      }
+
+      const doc = new jsPDF();
+
+      // Header
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Surat ${getLetterTitle(letterType)}`, 105, 20, { align: 'center' });
+
+      // Nama Pengirim, Penerima, dan Tarikh
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Nama Pengirim: ${nama}`, 20, 40);
+      doc.text(`Nama Penerima: ${penerima}`, 20, 50);
+      doc.text(`Tarikh: ${tarikh}`, 20, 60);
+
+      // Isi Kandungan (3 Perenggan)
+      const content = getLetterContent(letterType, nama, penerima);
+      const splitText = doc.splitTextToSize(content, 170); // Split text to fit width
+      doc.text(splitText, 20, 80, { lineHeightFactor: 1.5 }); // Jarak antara perenggan
+
+      // Save PDF
+      doc.save(`Surat_${getLetterTitle(letterType)}.pdf`);
+    }
+
+    // Function to get letter title
+    function getLetterTitle(letterType) {
+      switch (letterType) {
+        case 'cuti_rehat': return 'Permohonan Cuti Rehat';
+        case 'cuti_tanpa_rekod': return 'Permohonan Cuti Tanpa Rekod';
+        case 'pertukaran_sekolah': return 'Permohonan Pertukaran Sekolah';
+        case 'aduan_disiplin': return 'Aduan Disiplin Pelajar';
+        case 'peralatan_mengajar': return 'Permohonan Peralatan Mengajar';
+        case 'perakuan_guru': return 'Perakuan Guru Kelas';
+        case 'jemputan_penceramah': return 'Jemputan Penceramah';
+        case 'program_sekolah': return 'Permohonan Program Sekolah';
+        case 'sokongan_pelajar': return 'Sokongan untuk Pelajar Sekolah';
+        case 'laporan_prestasi': return 'Laporan Prestasi Pelajar';
+        default: return '';
+      }
+    }
+
+    // Function to get letter content
+    function getLetterContent(letterType, nama, penerima) {
+      switch (letterType) {
+        case 'cuti_rehat':
+          return `Kepada ${penerima},\n\nSaya dengan ini memohon cuti rehat selama 3 hari bermula dari 1 Januari 2025 hingga 3 Januari 2025 atas sebab kesihatan. Saya telah berjumpa dengan doktor dan dinasihatkan untuk berehat sepenuhnya bagi memulihkan keadaan kesihatan saya.\n\nSepanjang tempoh cuti ini, saya akan memastikan semua tugas dan tanggungjawab saya diuruskan dengan baik oleh rakan sekerja. Saya juga bersedia untuk memberikan sebarang maklumat lanjut sekiranya diperlukan.\n\nSaya berharap pihak tuan dapat mempertimbangkan permohonan ini dan memberikan kelulusan secepat mungkin. Terima kasih.`;
+        case 'cuti_tanpa_rekod':
+          return `Kepada ${penerima},\n\nSaya memohon cuti tanpa rekod pada 5 Januari 2025 kerana urusan keluarga yang penting. Urusan ini melibatkan kehadiran saya di mahkamah bagi menyelesaikan hal-hal berkaitan keluarga yang tidak dapat dielakkan.\n\nSaya telah memaklumkan kepada rakan sekerja dan menyediakan dokumen sokongan untuk urusan ini. Saya berharap pihak tuan dapat memberikan kelulusan bagi memudahkan urusan saya.\n\nSekiranya terdapat sebarang kekurangan maklumat, saya bersedia untuk memberikan penjelasan lanjut. Terima kasih atas perhatian dan pertimbangan tuan.`;
+        case 'pertukaran_sekolah':
+          return `Kepada ${penerima},\n\nSaya memohon pertukaran sekolah anak saya, ${nama}, ke Sekolah Kebangsaan Taman Melati atas sebab perubahan tempat tinggal. Keluarga kami telah berpindah ke kawasan berhampiran sekolah tersebut dan ini akan memudahkan urusan pengangkutan harian.\n\nAnak saya, ${nama}, telah menunjukkan prestasi yang baik dalam akademik dan ko-kurikulum di sekolah semasa. Saya yakin beliau akan terus cemerlang di sekolah baharu.\n\nSaya berharap pihak tuan dapat mempertimbangkan permohonan ini dan memberikan kelulusan secepat mungkin. Terima kasih.`;
+        case 'aduan_disiplin':
+          return `Kepada ${penerima},\n\nSaya ingin membuat aduan mengenai salah laku pelajar bernama ${nama} yang kerap mengganggu kelas. Pelajar tersebut telah beberapa kali menunjukkan tingkah laku yang tidak sopan dan mengganggu proses pembelajaran di dalam kelas.\n\nSaya telah memaklumkan kepada guru kelas dan pihak pentadbiran sekolah mengenai isu ini. Namun, tiada tindakan tegas yang diambil setakat ini.\n\nSaya berharap pihak tuan dapat mengambil tindakan sewajarnya bagi menangani masalah ini. Terima kasih.`;
+        case 'peralatan_mengajar':
+          return `Kepada ${penerima},\n\nSaya memohon peralatan mengajar seperti projektor dan papan putih untuk kegunaan kelas saya. Peralatan ini amat diperlukan bagi memastikan proses pengajaran dan pembelajaran berjalan dengan lancar.\n\nPeralatan sedia ada telah rosak dan tidak dapat digunakan dengan baik. Saya berharap pihak tuan dapat mempertimbangkan permohonan ini dan menyediakan peralatan yang diperlukan secepat mungkin.\n\nSekiranya terdapat sebarang kekurangan maklumat, saya bersedia untuk memberikan penjelasan lanjut. Terima kasih.`;
+        case 'perakuan_guru':
+          return `Kepada ${penerima},\n\nSaya mengesahkan bahawa pelajar bernama ${nama} telah menunjukkan prestasi yang baik dalam akademik dan ko-kurikulum. Pelajar tersebut telah mencapai keputusan yang cemerlang dalam peperiksaan akhir tahun.\n\nSelain itu, ${nama} juga aktif dalam aktiviti kokurikulum dan telah mewakili sekolah dalam beberapa pertandingan peringkat daerah.\n\nSaya berharap pengesahan ini dapat membantu dalam sebarang urusan yang memerlukan. Terima kasih.`;
+        case 'jemputan_penceramah':
+          return `Kepada ${penerima},\n\nKami menjemput Encik ${nama} untuk menjadi penceramah dalam program motivasi pelajar pada 10 Januari 2025. Program ini bertujuan untuk meningkatkan semangat dan motivasi pelajar dalam menghadapi peperiksaan.\n\nKami berharap Encik ${nama} dapat memberikan ceramah yang bermanfaat dan inspirasi kepada pelajar-pelajar kami. Sediakan maklumat lanjut mengenai program ini.\n\nSekiranya terdapat sebarang pertanyaan, sila hubungi pihak kami. Terima kasih.`;
+        case 'program_sekolah':
+          return `Kepada ${penerima},\n\nSaya memohon kebenaran untuk menganjurkan program lawatan sambil belajar ke Pulau Langkawi pada 15 Januari 2025. Program ini bertujuan untuk memberikan pendedahan dan pengalaman baru kepada pelajar-pelajar.\n\nKami telah menyediakan perancangan yang teliti dan memastikan keselamatan pelajar terjamin sepanjang program ini. Saya berharap pihak tuan dapat memberikan kelulusan secepat mungkin.\n\nSekiranya terdapat sebarang kekurangan maklumat, saya bersedia untuk memberikan penjelasan lanjut. Terima kasih.`;
+        case 'sokongan_pelajar':
+          return `Kepada ${penerima},\n\nSaya memberikan sokongan penuh kepada pelajar bernama ${nama} untuk menyertai pertandingan debat peringkat negeri. Pelajar tersebut telah menunjukkan minat dan bakat yang tinggi dalam bidang debat.\n\nSaya yakin ${nama} akan membawa nama baik sekolah dalam pertandingan ini. Saya berharap pihak tuan dapat memberikan sokongan dan bantuan yang diperlukan.\n\nTerima kasih atas perhatian dan kerjasama tuan.`;
+        case 'laporan_prestasi':
+          return `Kepada ${penerima},\n\nLaporan prestasi pelajar bernama ${nama} menunjukkan peningkatan yang memberangsangkan dalam mata pelajaran Matematik dan Sains. Pelajar tersebut telah berusaha dengan gigih dan menunjukkan komitmen yang tinggi dalam pembelajaran.\n\nSelain itu, ${nama} juga aktif dalam aktiviti kokurikulum dan telah mencapai beberapa kejayaan dalam pertandingan peringkat sekolah.\n\nSaya berharap laporan ini dapat membantu dalam sebarang urusan yang memerlukan. Terima kasih.`;
+        default:
+          return '';
+      }
+    }
+  </script>
+</body>
+</html>
